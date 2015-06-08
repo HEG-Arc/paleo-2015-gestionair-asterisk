@@ -7,34 +7,36 @@ paleo-test.py
 #!/usr/bin/python
 
 import sys
+from random import randint
 from asterisk import agi
 
 # Parse arguments
 player = sys.argv[1]
 
+Q = [{'file': 0, 'answer': 0}, {'file': 5, 'answer': 5}, {'file': 27, 'answer': 5}, {'file': 46, 'answer': 4}, {'file': 83, 'answer': 3}]
+
 gestionair = agi.AGI()
-
-# Debug only
-gestionair.say_digits(player)
-
-# TODO: Get file from simulator
-gestionair.stream_file('alexis2')
-answer = gestionair.get_data('gestionair-correspondant', max_digits=1)
-
-# TODO: Check with real answer
-if int(answer) == 1:
-    gestionair.stream_file('gestionair-thankyou')
-    response = True
-else:
-    gestionair.stream_file('gestionair-wrong')
-    response = False
 
 try:
     channel =  gestionair.env['agi_channel'][4:].split('-')
 except:
     channel = [0, 0]
 
-gestionair.verbose(extension)
+# Debug only
+#gestionair.say_digits(player)
+
+# TODO: Get file from simulator
+question = Q[randint(0,4)]
+gestionair.stream_file(question['file'])
+answer = gestionair.get_data('gestionair-correspondant', max_digits=1)
+
+# TODO: Check with real answer
+if int(answer) == question['answer']:
+    response = True
+    gestionair.stream_file('gestionair-thankyou')
+else:
+    response = False
+    gestionair.stream_file('gestionair-wrong')
 
 # TODO: Save everything in the DB
 # channel
