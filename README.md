@@ -55,6 +55,5 @@ exten => 1234,n,Wait(1)
 exten => 1234,n,Read(code,gestionair-entercode,1)
 exten => 1234,n,Playback(gestionair-appel)
 exten => 1234,n,AGI(paleo-test.py,${code})
-exten => 1234,n,Wait(1)
 exten => 1234,n,Hangup()
 ```
