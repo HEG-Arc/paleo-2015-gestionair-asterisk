@@ -51,7 +51,7 @@ conn = sqlite3.connect('paleo.db')
 # Création table channel
 cursor = conn.cursor()
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS users(
+CREATE TABLE IF NOT EXISTS channel(
      id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
      name TEXT,
      age INTERGER
@@ -63,7 +63,7 @@ conn.commit()
 # Création table player
 cursor = conn.cursor()
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS users(
+CREATE TABLE IF NOT EXISTS player(
      id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
      name TEXT,
      age INTERGER
@@ -80,7 +80,7 @@ Player(name="Vincent", game=1).save()
 # Création table question
 cursor = conn.cursor()
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS users(
+CREATE TABLE IF NOT EXISTS question(
      id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
      name TEXT,
      age INTERGER
@@ -97,7 +97,7 @@ Question(number=3).save()
 # Création table answer
 cursor = conn.cursor()
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS users(
+CREATE TABLE IF NOT EXISTS answer(
      id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
      name TEXT,
      age INTERGER
@@ -109,7 +109,7 @@ conn.commit()
 # Création table response
 cursor = conn.cursor()
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS users(
+CREATE TABLE IF NOT EXISTS response(
      id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
      name TEXT,
      age INTERGER
