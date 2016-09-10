@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import logging
 import sys
 from random import randint
 from asterisk import agi
@@ -8,27 +9,38 @@ import datetime
 import json
 import os
 
+
+logging.basicConfig(filename='/var/log/gestionair/agi.log',level=logging.INFO)
+
+logging.info("%s-New call: %s" % (datetime.datetime.now(), sys.argv))
 # Parse arguments
 player = sys.argv[1]
 pickup_time = datetime.datetime.now()
 
 gestionair = agi.AGI()
 
-gestionair.verbose("HELLO")
 
 try:
     channel = gestionair.env['agi_channel'][4:].split('-')
+    current = channel[0]
 except:
     channel = [0, 0]
+    current = channel[0]
+    logging.error("Unable to detect channel from: %s" % gestionair.env['agi_channel'])
 
-gestionair.verbose("PLAYER:%s / CHANNEL:%s" % (player, channel[0]))
+if len(player) == 3:
+    logging.info("[%s] PLAYER:%s / CHANNEL:%s" % (current, player, channel[0]))
+else:
+    logging.error("[%s] PLAYER:%s / CHANNEL:%s" % (current, player, channel[0]))
+    gestionair.stream_file('gestionair/wrong-code')
+    gestionair.hangup()
+    sys.exit()
 
 try:
     question = requests.get('http://192.168.1.1/game/agi/%s/%s/' % (player, channel[0])).json()
-    gestionair.verbose("SUCCESS")
+    logging.info("[%s] Received question: %s" % (current, question))
 except:
-    gestionair.verbose("EXCEPTION")
-    gestionair.verbose(sys.exc_info()[0])
+    logging.error("[%s] Unable to get a question: %s" % (current, sys.exc_info()[0]))
 
 if question['over']=='over':
     gestionair.stream_file('gestionair/over')
@@ -37,10 +49,10 @@ else:
     try:
         os.path.isfile('/var/lib/asterisk/sounds/gestionair/speech/%s.sln' % question['file'])
         speech_file = question['file']
+        logging.info("[%s] Playing file: %s" % (current, speech_file))
     except:
         speech_file = "1-fr"
-
-    gestionair.verbose("FILE: %s" % speech_file)
+        logging.error("[%s] Unable to play file: %s" % (current, speech_file))
 
     gestionair.stream_file('gestionair/speech/%s' % speech_file)
 
@@ -48,22 +60,22 @@ else:
         #gestionair.stream_file('gestionair/ringback')
 
         answer = gestionair.get_data('gestionair/correspondant', max_digits=1)
-
+        logging.info("[%s] Received answer: %s" % (current, answer))
         if int(answer) == question['response']:
             response = True
         else:
             response = False
 
-        gestionair.verbose("RESPONSE:%s" % response)
-
         payload = {'answer_id': question['answer_id'], 'answer_key': int(answer),
                'correct': response}
 
-        gestionair.verbose("PAYLOAD:%s" % payload)
+        logging.info("[%s] PAYLOAD: %s" % (current, payload))
 
         submit = requests.post('http://192.168.1.1/game/agi/', data=json.dumps(payload))
-
-        gestionair.verbose(submit)
+        if submit.status_code == 200:
+            logging.info("[%s] Response submitted: %s" % (current, submit.status_code))
+        else:
+            logging.error("[%s] Unable to submit response: %s" % (current, submit.text))
 
         if response:
             gestionair.stream_file('gestionair/thankyou')
@@ -72,3 +84,5 @@ else:
 
         if question['last']=='last':
             gestionair.stream_file('gestionair/last')
+
+        logging.info("[%s] End" % current)
